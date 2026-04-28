@@ -1,7 +1,6 @@
 import fetch from "node-fetch";
 
 const BASE = "https://api.linkedin.com/v2";
-const REST = "https://api.linkedin.com/rest";
 
 export class LinkedInClient {
   constructor(accessToken, organizationId = null) {
@@ -20,10 +19,10 @@ export class LinkedInClient {
   }
 
   async getProfile() {
-    const res = await fetch(`${BASE}/userinfo`, { headers: this.headers() });
+    const res = await fetch(`${BASE}/me`, { headers: this.headers() });
     if (!res.ok) throw new Error(`LinkedIn API error: ${res.status} ${await res.text()}`);
     const data = await res.json();
-    this.profileId = data.sub;
+    this.profileId = data.id;
     return data;
   }
 
@@ -33,7 +32,6 @@ export class LinkedInClient {
     return `urn:li:person:${this.profileId}`;
   }
 
-  // Publica un post solo de texto
   async createTextPost(text, visibility = "PUBLIC") {
     const authorUrn = await this.getAuthorUrn();
     const body = {
@@ -61,7 +59,6 @@ export class LinkedInClient {
     return { success: true, postId: location, url: `https://www.linkedin.com/feed/update/${encodeURIComponent(location)}/` };
   }
 
-  // Paso 1: registrar la subida de imagen
   async registerImageUpload(authorUrn) {
     const body = {
       registerUploadRequest: {
@@ -87,7 +84,6 @@ export class LinkedInClient {
     };
   }
 
-  // Paso 2: subir la imagen desde URL pública
   async uploadImageFromUrl(uploadUrl, imageUrl) {
     const imgRes = await fetch(imageUrl);
     if (!imgRes.ok) throw new Error(`No se pudo descargar la imagen: ${imgRes.status}`);
@@ -104,7 +100,6 @@ export class LinkedInClient {
     return true;
   }
 
-  // Publica un post con imagen
   async createImagePost(text, imageUrl, imageTitle = "", visibility = "PUBLIC") {
     const authorUrn = await this.getAuthorUrn();
     const { uploadUrl, assetUrn } = await this.registerImageUpload(authorUrn);
@@ -143,7 +138,6 @@ export class LinkedInClient {
     return { success: true, postId, url: `https://www.linkedin.com/feed/update/${encodeURIComponent(postId)}/` };
   }
 
-  // Obtiene estadísticas básicas de un post
   async getPostStats(postUrn) {
     const encoded = encodeURIComponent(postUrn);
     const res = await fetch(`${BASE}/socialActions/${encoded}`, { headers: this.headers() });
