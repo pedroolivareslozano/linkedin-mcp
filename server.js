@@ -24,7 +24,7 @@ function createMcpServer() {
       const profile = await li.getProfile();
       const text = ORG_ID
         ? `Publicando como organización: ID ${ORG_ID}`
-        : `Publicando como: ${profile.name || profile.sub}`;
+        : `Publicando como: ${profile.localizedFirstName} ${profile.localizedLastName}`;
       return { content: [{ type: "text", text }] };
     } catch (err) {
       return { content: [{ type: "text", text: `Error: ${err.message}` }], isError: true };
